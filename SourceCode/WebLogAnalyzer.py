@@ -2,6 +2,8 @@
 from pyspark.sql.functions import regexp_extract,col
 from pyspark.sql import SparkSession
 import re
+import warnings
+warnings.filterwarnings("ignore")
 
 class WebLogParser:
     def __init__(self,spark_session,file_path,*args):

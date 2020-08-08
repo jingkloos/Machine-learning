@@ -1,6 +1,6 @@
 from tweepy import API
 from tweepy import Cursor
-from twitterauthenticator import TwitterAuthenticator
+from twitter_authenticator import TwitterAuthenticator
 
 #    This class is to create a twitter client
 class TwitterClient():

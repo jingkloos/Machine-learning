@@ -1,0 +1,5 @@
+tweepy
+pandas
+nltk
+sklearn
+textblob

@@ -8,6 +8,7 @@ from nltk.stem.snowball import SnowballStemmer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
 from textblob import TextBlob
+import joblib
 
 
 nltk.download('punkt',quiet=True)
@@ -16,11 +17,14 @@ nltk.download('stopwords',quiet=True)
 
 '''LDA model'''
 class TweetAnalyzer():
-    def __init__(self,df_tweets):
-        self.df=df_tweets
+    def __init__(self):
+        self.df=None
         self.model=None
         self.vectorizer=None
-        
+
+    def get_df(self,df_tweets):
+        self.df= df_tweets
+    
     def clean_df(self):
         '''
         This process is to clean the dataframe
@@ -31,7 +35,7 @@ class TweetAnalyzer():
         logging.info('drop duplicates')
         self.df.dropna(subset=['id'],inplace=True)
         logging.info('pick certain columns and filter out retweeted tweets and non english tweets')
-        cols=['created_at','text','user','retweeted','reply_count','retweet_count','favorite_count','lang']
+        cols=['created_at','text','retweeted','reply_count','retweet_count','favorite_count','lang']
         self.df=self.df[cols]
         self.df=self.df[(self.df.lang=='en') & (self.df.retweeted == False)]
         logging.info('clean text and add sentiment')
@@ -104,6 +108,9 @@ class TweetAnalyzer():
         df_topic_words=df_topic_words.join(df_topics['topic'].value_counts())
         df_topic_words.columns = ['Word '+str(i) for i in range(df_topic_words.shape[1]-1)]+['topic_count']
         df_topic_words.index = ['Topic '+str(i) for i in range(df_topic_words.shape[0])]
+        joblib.dump(self.model,'model\lda_model')
+        joblib.dump(self.vectorizer,'model\\tfidf_model')
+        df_topic_words.to_csv('model\\topics.csv')
         return df_topic_words
         
 

@@ -16,6 +16,9 @@ warnings.filterwarnings('ignore')
 if not os.path.exists('data'):
     os.makedirs('data')
 
+if not os.path.exists('model'):
+    os.makedirs('model')
+
 output_file=Path('data/tweets.json')
 if not os.path.exists(output_file) or sys.argv[1] == 'Y':
     logging.info('Start streaming tweets from twitter.........')
@@ -29,7 +32,8 @@ if not os.path.exists(output_file) or sys.argv[1] == 'Y':
 
 logging.info('Start analyzing tweets.........')
 df_tweets=pd.read_json(output_file,lines=True)
-tweet_analyzer=TweetAnalyzer(df_tweets)
+tweet_analyzer=TweetAnalyzer()
+tweet_analyzer.get_df(df_tweets)
 
 logging.info('Cleaning tweets.........')
 tweets_df=tweet_analyzer.clean_df()

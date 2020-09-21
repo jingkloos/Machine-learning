@@ -3,6 +3,7 @@ from twitter_authenticator import TwitterAuthenticator
 from tweepy import Stream
 import datetime
 from json import dumps
+from kafka import KafkaProducer
 import sys
 
 
@@ -14,8 +15,8 @@ class TwitterStreamer():
     def __init__(self):
         self.twitter_authenticator=TwitterAuthenticator()
 
-    def stream_tweets(self,filter_list=None,output_file=None,time_limit=10):
-        listener=TwitterListener(output_file,time_limit)
+    def stream_tweets(self,filter_list=None,producer=None,time_limit=10,output_file=None):
+        listener=TwitterListener(producer,time_limit,output_file)
         auth=self.twitter_authenticator.get_authentication()
         stream=Stream(auth,listener)
         if filter_list:
@@ -28,11 +29,11 @@ class TwitterStreamer():
 
 class TwitterListener(StreamListener):
 
-    def __init__(self,output_file,time_limit):
+    def __init__(self,producer,time_limit,output_file):
         self.output_file=output_file
         self.time_limit=time_limit
         self.start_time=datetime.datetime.now()
-        
+        self.producer=producer
 
     def on_data(self, raw_data):
         try:
@@ -40,6 +41,8 @@ class TwitterListener(StreamListener):
                 if self.output_file:
                     with open(self.output_file,'a') as f:
                         f.write(raw_data)
+                if self.producer:
+                    self.producer.send('tweets3',value=raw_data)
                 return True
             else:
                 return False
@@ -61,6 +64,8 @@ if __name__=='__main__':
         time_limit=int(sys.argv[1])
         for i in range(2,len(sys.argv)):
             filter_list.append(sys.argv[i])
+    
+    producer=KafkaProducer(bootstrap_servers='localhost:9092',value_serializer=lambda x:dumps(x).encode('utf-8'))
     streamer=TwitterStreamer()
-    streamer.stream_tweets(output_file=output_file,filter_list=filter_list,time_limit=time_limit)
+    streamer.stream_tweets(producer=producer,filter_list=filter_list,time_limit=time_limit)
     
